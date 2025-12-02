@@ -58,6 +58,19 @@ services:
     networks:
       - shirataki-net
 
+  # test
+  ffmpeg-audio-stream:
+    build: .
+    environment:
+      - RTMP_URL=rtmp://0.0.0.0:1935/live
+    command: ["ruby", "lib/ffmpeg_audio_stream.rb"]
+    ports:
+      - "1935:1935"
+    volumes:
+      - ./lib:/app/lib:ro
+    networks:
+      - shirataki-net
+
   # Optional: Redis Commander for GUI management
   redis-commander:
     image: rediscommander/redis-commander:latest

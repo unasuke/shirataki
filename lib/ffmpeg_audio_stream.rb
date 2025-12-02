@@ -140,13 +140,7 @@ class FFmpegAudioStream
   end
 
   def build_ffmpeg_command
-    # Check if sudo is needed for binding to all interfaces
-    cmd = if @rtmp_url.include?('0.0.0.0')
-            @logger.info "Detected 0.0.0.0 in RTMP URL, using sudo for ffmpeg"
-            ['sudo', 'ffmpeg']
-          else
-            ['ffmpeg']
-          end
+    cmd = ['ffmpeg']
 
     # Input options
     if @input_format == 'test'

@@ -83,10 +83,31 @@ services:
     networks:
       - shirataki-net
 
+  mimir:
+    image: grafana/mimir:latest
+    command: ["-config.file=/etc/mimir/config.yaml", "-config.expand-env=true"]
+    ports:
+      - "9009:9009"
+    volumes:
+      - ./mimir.yaml:/etc/mimir/config.yaml:ro
+      - mimir-data:/tmp/mimir
+    networks:
+      - shirataki-net
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9009/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    environment:
+      - MIMIR_STORAGE_BACKEND=${MIIMIR_STORAGE_BACKEND:-filesystem}
+      - S3_BUCKET_NAME=${S3_BUCKET_NAME}
+
 networks:
   shirataki-net:
     driver: bridge
 
 volumes:
   valkey-data:
+    driver: local
+  mimir-data:
     driver: local

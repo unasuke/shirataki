@@ -1,0 +1,23 @@
+target: "all"
+
+common:
+  storage:
+    backend: "${MIMIR_STORAGE_BACKEND}"
+    s3:
+      endpoint: s3.dualstack.ap-northeast-1.amazonaws.com
+      region: ap-northeast-1
+
+blocks_storage:
+  s3:
+    bucket_name: "${S3_BUCKET_NAME}"
+  filesystem:
+    dir: "/tmp/mimir"
+
+server:
+  http_listen_port: 9009
+
+# Settings for single tenant setup
+multitenancy_enabled: false
+ingester:
+  ring:
+    replication_factor: 1

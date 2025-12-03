@@ -23,3 +23,9 @@ gem "concurrent-ruby"
 
 # Error tracking and monitoring
 gem "sentry-ruby"
+
+# OpenTelemetry for metrics
+gem "opentelemetry-sdk"
+gem "opentelemetry-metrics-sdk"
+gem "opentelemetry-exporter-otlp"
+gem "opentelemetry-exporter-otlp-metrics"

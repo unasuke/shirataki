@@ -1,0 +1,34 @@
+# OpenTelemetry Collector configuration
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 10s
+    send_batch_size: 1024
+
+exporters:
+  # Export metrics to Grafana Mimir via OTLP
+  otlphttp/mimir:
+    endpoint: http://mimir:9009/otlp
+    # headers:
+    #   X-Scope-OrgID: "anonymous"
+    tls:
+      insecure: true
+
+  # For debugging - logs received data
+  debug:
+    verbosity: detailed
+
+
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      processors: []
+      exporters: [otlphttp/mimir, debug]

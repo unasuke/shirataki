@@ -63,11 +63,17 @@ services:
     build: .
     environment:
       - RTMP_URL=rtmp://0.0.0.0:1935/live
+      - OTEL_TRACES_EXPORTER=otlp
+      - OTEL_METRICS_EXPORTER=otlp
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+      - OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=http://otel-collector:4318/v1/metrics
     command: ["ruby", "lib/ffmpeg_audio_stream.rb"]
     ports:
       - "1935:1935"
     volumes:
       - ./lib:/app/lib:ro
+    depends_on:
+      - otel-collector
     networks:
       - shirataki-net
 
@@ -101,6 +107,19 @@ services:
     environment:
       - MIMIR_STORAGE_BACKEND=${MIIMIR_STORAGE_BACKEND:-filesystem}
       - S3_BUCKET_NAME=${S3_BUCKET_NAME}
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    ports:
+      - "4317:4317"  # OTLP gRPC
+      - "4318:4318"  # OTLP HTTP
+    volumes:
+      - ./otel/collector.yaml:/etc/otel-collector-config.yaml:ro
+    depends_on:
+      - mimir
+    networks:
+      - shirataki-net
 
 networks:
   shirataki-net:

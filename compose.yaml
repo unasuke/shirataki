@@ -121,6 +121,22 @@ services:
     networks:
       - shirataki-net
 
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./grafana/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml:ro
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - mimir
+    networks:
+      - shirataki-net
+
 networks:
   shirataki-net:
     driver: bridge
@@ -129,4 +145,6 @@ volumes:
   valkey-data:
     driver: local
   mimir-data:
+    driver: local
+  grafana-data:
     driver: local

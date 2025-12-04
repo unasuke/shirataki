@@ -124,7 +124,7 @@ class RedisStreamsSSEApp
   def start_connection_monitor
     Thread.new do
       loop do
-        sleep(30)  # Log every 30 seconds
+        sleep(10)  # Log every 10 seconds
 
         active_count = @connected_clients.size
         if active_count > 0

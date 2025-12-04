@@ -21,6 +21,10 @@ services:
     environment:
       - REDIS_URL=redis://valkey:6379/0
       - REDIS_STREAM_KEY=transcription_stream
+      - OTEL_TRACES_EXPORTER=otlp
+      - OTEL_METRICS_EXPORTER=otlp
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+      - OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=http://otel-collector:4318/v1/metrics
     depends_on:
       valkey:
         condition: service_healthy

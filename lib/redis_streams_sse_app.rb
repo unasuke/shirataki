@@ -6,6 +6,12 @@ require 'logger'
 require 'securerandom'
 require 'concurrent'
 require 'sentry-ruby'
+require 'opentelemetry/sdk'
+require 'opentelemetry-metrics-sdk'
+require 'opentelemetry-exporter-otlp'
+require 'opentelemetry-exporter-otlp-metrics'
+
+OpenTelemetry::SDK.configure
 
 class RedisStreamsSSEApp
   def initialize(logger: nil)
@@ -20,6 +26,11 @@ class RedisStreamsSSEApp
         "[#{datetime.strftime('%Y-%m-%d %H:%M:%S')}] [RedisStreamsSSEApp] #{severity}: #{msg}\n"
       end
     end
+
+    otel_metric_exporter = OpenTelemetry::Exporter::OTLP::Metrics::MetricsExporter.new
+    OpenTelemetry.meter_provider.add_metric_reader(otel_metric_exporter)
+    meter = OpenTelemetry.meter_provider.meter("shirataki_redis_streams_sse_app")
+    @connected_counter = meter.create_up_down_counter("shirataki_redis_streams_sse_app.connected_clients", description: "Number of connected SSE clients")
 
     # Start monitoring thread for client connections
     start_connection_monitor
@@ -70,7 +81,10 @@ class RedisStreamsSSEApp
     sse_stream = RedisStreamSSE.new(@redis_endpoint, @stream_key, room, language,
                                      logger: @logger,
                                      client_id: client_id,
-                                     on_close: -> { @connected_clients.delete(client_id) })
+                                     on_close: -> {
+                                       @connected_clients.delete(client_id)
+                                       @connected_counter.add(-1)
+                                     })
 
     # Track this client
     @connected_clients[client_id] = {
@@ -81,6 +95,7 @@ class RedisStreamsSSEApp
     }
 
     @logger.info "New SSE client connected: #{client_id} from #{request.ip} (room: #{room}, language: #{language})"
+    @connected_counter.add(1)
 
     [200, headers, sse_stream]
   end
@@ -161,6 +176,10 @@ class RedisStreamSSE
         "[#{datetime.strftime('%Y-%m-%d %H:%M:%S')}] [RedisStreamSSE] #{severity}: #{msg}\n"
       end
     end
+    otel_metric_exporter = OpenTelemetry::Exporter::OTLP::Metrics::MetricsExporter.new
+    OpenTelemetry.meter_provider.add_metric_reader(otel_metric_exporter)
+    meter = OpenTelemetry.meter_provider.meter("shirataki_redis_streams_sse")
+    @sent_events_counter = meter.create_counter("shirataki_redis_streams_sse.sent_events", description: "Number of sent SSE events")
   end
 
   def each
@@ -197,6 +216,7 @@ class RedisStreamSSE
         case type
         when :data
           yield data
+          @sent_events_counter.add(1)
         when :error
           raise data
         when :done

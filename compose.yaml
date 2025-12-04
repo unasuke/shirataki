@@ -51,6 +51,7 @@ services:
       - ./lib:/app/lib:ro
       - ./bin:/app/bin:ro
     command: ["ruby", "bin/rtmp_transcribe_server.rb"]
+    restart: unless-stopped
     networks:
       - shirataki-net
 

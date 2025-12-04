@@ -22,7 +22,8 @@ services:
       - REDIS_URL=redis://valkey:6379/0
       - REDIS_STREAM_KEY=transcription_stream
     depends_on:
-      - valkey
+      valkey:
+        condition: service_healthy
     volumes:
       - ./lib:/app/lib:ro
       - ./public:/app/public:ro

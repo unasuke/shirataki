@@ -25,6 +25,7 @@ services:
       - valkey
     volumes:
       - ./lib:/app/lib:ro
+      - ./public:/app/public:ro
       - ./config.ru:/app/config.ru:ro
     command: ["bundle", "exec", "falcon", "serve", "-b", "http://0.0.0.0:3000"]
     networks:

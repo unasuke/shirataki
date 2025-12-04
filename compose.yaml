@@ -22,9 +22,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - REDIS_HOST=valkey
-      - REDIS_PORT=6379
-      - REDIS_DB=0
+      - REDIS_URL=redis://valkey:6379/0
       - REDIS_STREAM_KEY=transcription_stream
     depends_on:
       - valkey
@@ -39,9 +37,8 @@ services:
   rtmp-transcribe:
     build: .
     environment:
-      - REDIS_HOST=valkey
-      - REDIS_PORT=6379
-      - REDIS_DB=0
+      - RTMP_URL=rtmp://0.0.0.0:1935/live
+      - REDIS_URL=redis://valkey:6379/0
       - REDIS_STREAM_KEY=transcription_stream
       - AWS_REGION=${AWS_REGION:-ap-northeast-1}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}

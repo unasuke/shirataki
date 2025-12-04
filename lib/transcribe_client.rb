@@ -296,7 +296,6 @@ class TranscribeClient
 
       alternative = result.alternatives.first
       text = alternative.transcript
-      @logger.debug "Received transcript: #{result.inspect}" if ENV['DEBUG']
 
       # Skip empty results
       next if text.nil? || text.strip.empty?

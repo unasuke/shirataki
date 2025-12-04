@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>Shirataki demo page</title>
+    <script type="module">
+      // https://stimulus.hotwired.dev/handbook/installing#using-without-a-build-system
+      import { Application, Controller } from "https://unpkg.com/@hotwired/stimulus/dist/stimulus.js"
+
+      const origin = window.location.origin
+      window.Stimulus = Application.start()
+      // Most implementations come from
+      // https://github.com/kaigionrails/conference-app/blob/main/app/javascript/controllers/subscreen_controller.js
+      Stimulus.register("subscreen", class extends Controller {
+        static values = {
+          shiratakiUrl: { type: String, default: origin },
+          room: String,
+          fontSize: { type: String, default: "text-xl" }
+        }
+
+        static targets = ["jaTranscribe", "enTranscribe"]
+
+        connect() {
+          console.log(this.shiratakiUrlValue)
+          this.currentJaElement = null
+          this.currentEnElement = null
+          this.listenShiratakiEvent()
+        }
+
+        listenShiratakiEvent() {
+        // Japanese EventSource
+        this.jaEventSource = new EventSource(`${this.shiratakiUrlValue}/sse?room=${this.roomValue}&language=ja`)
+        this.jaEventSource.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data)
+            this.displayJaMessage(data)
+          } catch (error) {
+            console.error("Failed to parse Japanese message:", error)
+          }
+        }
+        this.jaEventSource.onerror = (event) => {
+          console.error("Japanese EventSource failed:", event)
+          this.jaEventSource.close()
+        }
+
+        window.addEventListener("beforeunload", () => {
+          this.jaEventSource.close()
+          console.log("Closed Japanese EventSource on page unload")
+        })
+
+        // English EventSource
+        this.enEventSource = new EventSource(`${this.shiratakiUrlValue}/sse?room=${this.roomValue}&language=en`)
+        this.enEventSource.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data)
+            this.displayEnMessage(data)
+          } catch (error) {
+            console.error("Failed to parse English message:", error)
+          }
+        }
+        this.enEventSource.onerror = (event) => {
+          console.error("English EventSource failed:", event)
+          this.enEventSource.close()
+        }
+        window.addEventListener("beforeunload", () => {
+          this.enEventSource.close()
+          console.log("Closed English EventSource on page unload")
+        })
+      }
+
+      displayJaMessage(data) {
+        // Check if message is in data.data format
+        const messageData = data.data || data
+
+        // Skip if no text
+        if (!messageData.text) {
+          console.log("No text in Japanese message:", data)
+          return
+        }
+
+        // Check if is_final
+        const isFinal = messageData.is_final === "true" || messageData.is_final === true
+
+        if (isFinal) {
+          // Create new element for finalized text
+          const messageElement = document.createElement("span")
+          messageElement.className = `mb-2 text-theme-primary ${this.fontSizeValue} leading-relaxed`
+          messageElement.textContent = messageData.text
+
+          // Remove current temporary element if exists
+          if (this.currentJaElement) {
+            this.currentJaElement.remove()
+            this.currentJaElement = null
+          }
+
+          // Add finalized element
+          this.jaTranscribeTarget.appendChild(messageElement)
+        } else {
+          // Update or create element for unfinalized text
+          if (!this.currentJaElement) {
+            this.currentJaElement = document.createElement("span")
+            this.currentJaElement.className = `mb-2 text-gray-400 ${this.fontSizeValue} leading-relaxed italic`
+            this.jaTranscribeTarget.appendChild(this.currentJaElement)
+          }
+
+          // Update text
+          this.currentJaElement.textContent = messageData.text
+        }
+
+        // Auto scroll to show latest message
+        this.jaTranscribeTarget.scrollTop = this.jaTranscribeTarget.scrollHeight
+      }
+
+      displayEnMessage(data) {
+        // Check if message is in data.data format
+        const messageData = data.data || data
+
+        // Skip if no text
+        if (!messageData.text) {
+          console.log("No text in English message:", data)
+          return
+        }
+
+        // Check if is_final
+        const isFinal = messageData.is_final === "true" || messageData.is_final === true
+
+        if (isFinal) {
+          // Create new element for finalized text
+          const messageElement = document.createElement("span")
+          messageElement.className = `mb-2 text-theme-primary ${this.fontSizeValue} leading-relaxed`
+          messageElement.textContent = messageData.text
+
+          // Remove current temporary element if exists
+          if (this.currentEnElement) {
+            this.currentEnElement.remove()
+            this.currentEnElement = null
+          }
+
+          // Add finalized element
+          this.enTranscribeTarget.appendChild(messageElement)
+        } else {
+          // Update or create element for unfinalized text
+          if (!this.currentEnElement) {
+            this.currentEnElement = document.createElement("span")
+            this.currentEnElement.className = `mb-2 text-gray-400 ${this.fontSizeValue} leading-relaxed italic`
+            this.enTranscribeTarget.appendChild(this.currentEnElement)
+          }
+
+          // Update text
+          this.currentEnElement.textContent = messageData.text
+        }
+
+        // Auto scroll to show latest message
+        this.enTranscribeTarget.scrollTop = this.enTranscribeTarget.scrollHeight
+      }
+      })
+    </script>
+  </head>
+  <body>
+    <div class="w-full h-screen bg-white">
+      <div data-controller="subscreen" data-subscreen-room-value="default" class="h-full grid grid-rows-2 gap-4 p-4 bg-[var(--color-text-primary)]">
+        <div data-subscreen-target="enTranscribe" class="bg-[var(--color-background)] p-4 overflow-y-auto border border-gray-600 rounded"></div>
+        <div data-subscreen-target="jaTranscribe" class="bg-[var(--color-background)] p-4 overflow-y-auto border border-gray-600 rounded"></div>
+      </div>
+    </div>
+  </body>
+</html>

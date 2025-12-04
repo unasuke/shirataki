@@ -28,6 +28,8 @@ class RedisStreamsSSEApp
     request = Rack::Request.new(env)
 
     case request.path
+    when '/'
+      handle_index
     when '/sse'
       handle_sse_stream(request)
     when '/health'
@@ -89,6 +91,11 @@ class RedisStreamsSSEApp
       redis_status: check_redis_connection
     }
     [200, {'Content-Type' => 'application/json'}, [status.to_json]]
+  end
+
+  def handle_index
+    index_html = File.read(File.join(__dir__, '..', 'public', 'index.html'))
+    [200, {'Content-Type' => 'text/html; charset=utf-8'}, [index_html]]
   end
 
   def check_redis_connection

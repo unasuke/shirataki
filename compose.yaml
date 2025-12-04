@@ -42,9 +42,9 @@ services:
       - AWS_REGION=${AWS_REGION}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-      - RTMP_URL=${RTMP_URL:-rtmp://localhost:1935/live}
-      - TRANSCRIBE_LANGUAGE=${TRANSCRIBE_LANGUAGE:-ja-JP}
-      - ROOM=${ROOM:-default}
+      - TRANSCRIBE_LANGUAGE=${TRANSCRIBE_LANGUAGE}
+      - ROOM=default
+      - DEBUG=true
     depends_on:
       - valkey
     ports:

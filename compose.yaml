@@ -25,6 +25,7 @@ services:
       - OTEL_METRICS_EXPORTER=otlp
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
       - OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=http://otel-collector:4318/v1/metrics
+      - DEBUG=true
     depends_on:
       valkey:
         condition: service_healthy

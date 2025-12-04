@@ -14,6 +14,7 @@ class FFmpegAudioStream
     @ffmpeg_process = nil
     @threads = []
     @logger = logger || Logger.new(STDOUT).tap do |log|
+      STDOUT.sync = true
       log.formatter = proc do |severity, datetime, progname, msg|
         "[#{datetime.strftime('%Y-%m-%d %H:%M:%S')}] [FFmpegAudioStream] #{severity}: #{msg}\n"
       end

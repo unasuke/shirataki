@@ -15,6 +15,7 @@ class RedisStreamsSSEApp
     @stream_key = ENV.fetch('REDIS_STREAM_KEY', 'transcription_stream')
     @connected_clients = Concurrent::Hash.new
     @logger = logger || Logger.new(STDOUT).tap do |log|
+      STDOUT.sync = true
       log.formatter = proc do |severity, datetime, progname, msg|
         "[#{datetime.strftime('%Y-%m-%d %H:%M:%S')}] [RedisStreamsSSEApp] #{severity}: #{msg}\n"
       end
@@ -155,6 +156,7 @@ class RedisStreamSSE
     # Use '$' to start reading only new messages from connection time
     @last_id = '$'
     @logger = logger || Logger.new(STDOUT).tap do |log|
+      STDOUT.sync = true
       log.formatter = proc do |severity, datetime, progname, msg|
         "[#{datetime.strftime('%Y-%m-%d %H:%M:%S')}] [RedisStreamSSE] #{severity}: #{msg}\n"
       end

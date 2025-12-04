@@ -47,6 +47,8 @@ services:
       - ROOM=${ROOM:-default}
     depends_on:
       - valkey
+    ports:
+      - "1935:1935"
     volumes:
       - ./lib:/app/lib:ro
       - ./bin:/app/bin:ro

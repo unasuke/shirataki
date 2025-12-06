@@ -50,6 +50,7 @@ services:
       - TRANSCRIBE_LANGUAGE=${TRANSCRIBE_LANGUAGE}
       - ROOM=default
       - DEBUG=true
+      - ENABLE_TRANSLATION=${ENABLE_TRANSLATION}
     depends_on:
       - valkey
     ports:
